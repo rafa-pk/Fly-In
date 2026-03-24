@@ -16,31 +16,27 @@ class FlyIn:
         self.state: str = None
         self.settings = None
         self.map_file: str = None
-        self.visualizer = Visualizer(self.screen)
+        self.visualizer = Visualizer(self.screen, self)
         self._run()
 
-    def _event_handler(self) -> None:
-        """event handler method for the graphical loop"""
-        for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == 
+    def status(self, program_status: bool) -> None:
+        self.running = program_status
 
-    def _starting_menu(self) -> None:
+    def _starting_menu(self, events: list[str, ...]) -> None:
         """method which calls the menu visualizer, stores the map to be used
         and updates status"""
-        self.map_file = self.visualizer.maps_menu()
-        self.status = "loading"
+        self.map_file = self.visualizer.maps_menu(events)
+        if self.map_file is not None:
+            self.state = "loading"
 
-    def _program_loading(self) -> None:
+    def _program_loading(self, events: list[str, ...]) -> None:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
         #self.settings = Parser(self.map_file)
         #self.path = Algo()
-        self.state = "update"
+        self.state = "running"
 
-    def _update(self) -> None:
+    def _update(self, events: list[str, ...]) -> None:
         pass
 
     def _run(self) -> None:
@@ -48,18 +44,18 @@ class FlyIn:
         program_states = {
                     "menu": self._starting_menu,
                     "loading": self._program_loading,
-                    "running":self._update(),
+                    "running":self._update,
                     }
         self.state = "menu"
 
         while self.running:
-            self._event_handler()
-            program_states[self.state]()
+            events = pygame.event.get()
+            program_states[self.state](events)
             pygame.display.flip()
 
 def main() -> None:
     if len(sys.argv) != 1:
-        print("Error: Too many arguments.\tUsage: python3 fly-in.py")
+        print("\nError: Too many arguments.\n\tUsage: python3 fly_in.py")
         sys.exit(1)
     else:
         FlyIn()
