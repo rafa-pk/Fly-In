@@ -9,46 +9,38 @@ class Visualizer:
         self.program = program
         self.menu_title_font = pygame.font.SysFont("Arial", 60)
         self.options_font = pygame.font.SysFont("Arial", 30)
+        self.menu_path = './maps'
+        self.menu_index = 0
 
     def draw_text(self, text: str, font: str, color: tuple[int, int, int],
                   x: int, y: int) -> None:
         """method to draw text to screen"""
         image = font.render(text, True, color)
         self.screen.blit(image, (x, y))
-
-    def menu_keys_handling(self, key_flag, contents: list[str, ...]) -> int:
-        mp = 0
-
-        if key_flag == pygame.K_UP or pygame.K_k:
-            if mp + 1 > len(contents):
-                mp = 0
-            else:
-                mp += 1
-        elif key_flag == pygame.K_DOWN or pygame.K_j:
-            if mp - 1 < 0:
-                mp = len(contents)
-            else:
-                mp -= 1
-        return mp
-            
-
+           
     def maps_menu(self, events: list[str, ...]) -> str:
         """method which handles the menu when the program launches"""
+        contents = os.listdir(self.menu_path)
         for event in events:
             if event.type == pygame.QUIT:
                 self.program.status(False)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.program.status(False)
-                index = self.menu_keys_handling(event.key, contents)
+                if event.key in (pygame.K_UP, pygame.K_k):
+                    self.menu_index = (self.menu_index - 1) % len(contents)
+                if event.key in (pygame.K_DOWN, pygame.K_j):
+                    self.menu_index = (self.menu_index + 1) % len(contents)
                 if event.key == pygame.K_RETURN:
-                    if os.path.isdir(contents[index]):
-                        path += f"/{contents[index]}"
-                        contents = os.listdir(path)
+                    selected = contents[self.menu_index]
+                    full_path = os.path.join(self.menu_path, selected)
+                    if os.path.isdir(full_path):
+                        self.menu_path = full_path
+                        self.menu_index = 0
                     else:
-                        return contents[index]
-        path = './maps'
-        contents = os.listdir(path)
+                        return full_path
+        
+        self.screen.fill((0, 0, 0))
         self.draw_text("Select your desired map file:", self.menu_title_font, 
                        (250, 250, 250), 300, 50)
         ix = 0
@@ -59,9 +51,4 @@ class Visualizer:
                            500, 100 + offset)
             ix += 1
             offset += 70
-        
-
-        return None
-        #implement navigation (key hooks + color change)
-        #if dir -> go in dir
         #if enter is clicked, return the name of that file as a str
