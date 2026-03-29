@@ -17,10 +17,23 @@ class Visualizer:
         """method to draw text to screen"""
         image = font.render(text, True, color)
         self.screen.blit(image, (x, y))
-           
+    
+    def draw_text_box(self, text: str, text_color: tuple[int, int, int], 
+                  font: str, bg_color: tuple[int, int, int],
+                  x: int, y: int, padding: int) -> None:
+        """method to draw text to screen with bg underneath"""
+        image = font.render(text, True, text_color)
+        text_box = image.get_rect(topleft=(x,y))
+        bg_rect = pygame.Rect(text_box.x - padding, text_box.y - padding, 
+                              text_box.width + padding*2, text_box.height + padding*2)
+        pygame.draw.rect(self.screen, bg_color, bg_rect, 0)
+        self.screen.blit(image, (x, y))
+
+       
     def maps_menu(self, events: list[str, ...]) -> str:
         """method which handles the menu when the program launches"""
-        contents = os.listdir(self.menu_path)
+        contents: list[str, ...] = os.listdir(self.menu_path)
+        highlight_menu_entry: bool = True
         for event in events:
             if event.type == pygame.QUIT:
                 self.program.status(False)
@@ -29,9 +42,17 @@ class Visualizer:
                     self.program.status(False)
                 if event.key in (pygame.K_UP, pygame.K_k):
                     self.menu_index = (self.menu_index - 1) % len(contents)
+                    highlight_menu_entry = True
                 if event.key in (pygame.K_DOWN, pygame.K_j):
                     self.menu_index = (self.menu_index + 1) % len(contents)
-                if event.key == pygame.K_RETURN:
+                    highlight_menu_entry = True
+                if event.key in (pygame.K_LEFT, pygame.K_h):
+                    if os.path.isdir(self.menu_path) and self.menu_path != "./maps":
+                        parent_dir = os.path.dirname(self.menu_path)
+                        if parent_dir != self.menu_path:
+                            self.menu_path = parent_dir
+                            self.menu_index = 0
+                if event.key in (pygame.K_RETURN, pygame.K_RIGHT, pygame.K_l):
                     selected = contents[self.menu_index]
                     full_path = os.path.join(self.menu_path, selected)
                     if os.path.isdir(full_path):
@@ -45,10 +66,19 @@ class Visualizer:
                        (250, 250, 250), 300, 50)
         ix = 0
         offset = 50
-        for element in contents:
-            entry = f"[{ix}]: {element}"
-            self.draw_text(entry, self.options_font, (250, 250, 250),
-                           500, 100 + offset)
+        for i, element in enumerate(contents):
+            entry = f"  [{ix}]:  {element}"
+            pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset), 
+                             (self.screen.get_width(), 80 + offset), 1)
+            if highlight_menu_entry and i == self.menu_index:
+                self.draw_text_box(entry, (250, 250, 250), self.options_font,
+                                   (51, 51, 51), 0, 100 + offset, 0)
+                highlight_menu_entry = False
+            else:
+                self.draw_text(entry, self.options_font, (250, 250, 250),
+                               0, 100 + offset)
             ix += 1
             offset += 70
-        #if enter is clicked, return the name of that file as a str
+        pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset), 
+                             (self.screen.get_width(), 80 + offset), 1)
+

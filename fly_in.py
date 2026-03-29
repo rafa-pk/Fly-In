@@ -27,6 +27,8 @@ class FlyIn:
         and updates status"""
         self.map_file = self.visualizer.maps_menu(events)
         if self.map_file is not None:
+            print(self.map_file)
+            self.screen.fill((0, 0, 0))
             self.state = "loading"
 
     def _program_loading(self, events: list[str, ...]) -> None:
