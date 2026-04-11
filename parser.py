@@ -7,6 +7,13 @@ from enum import Enum
 
 
 class Node(BaseModel):
+    name:str
+    x: int
+    y: int
+    connection: "Node" = None
+    zone: str = "normal"
+    color: str = None
+    max_drones: int = 1
 
 class Parser:
 
