@@ -1,13 +1,13 @@
 import sys
 import pygame
-from visualizer import Visualizer
+from file_menu import FileMenu
 #from parser import Parser
 
 
 class FlyIn:
     """Orchestrator class: Bridges gap between program and pygame"""
     def __init__(self) -> None:
-        """Initialization method: inits pygame and everything the 
+        """Initialization method: inits pygame and everything the
         program will need"""
         pygame.init()
         self.screen = pygame.display.set_mode((1400, 800))
@@ -16,29 +16,31 @@ class FlyIn:
         self.state: str = None
         self.settings = None
         self.map_file: str = None
-        self.visualizer = Visualizer(self.screen, self)
+        self.file_menu = FileMenu(self.screen, self)
         self._run()
 
     def status(self, program_status: bool) -> None:
         self.running = program_status
 
-    def _starting_menu(self, events: list[str, ...]) -> None:
+    def _starting_menu(self, events: list[str]) -> None:
         """method which calls the menu visualizer, stores the map to be used
         and updates status"""
-        self.map_file = self.visualizer.maps_menu(events)
+        self.map_file = self.file_menu.menu(events)
         if self.map_file is not None:
             print(self.map_file)
             self.screen.fill((0, 0, 0))
             self.state = "loading"
 
-    def _program_loading(self, events: list[str, ...]) -> None:
+    def _program_loading(self, events: list[str]) -> None:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
-        #self.settings = Parser(self.map_file)
-        #self.path = Algo()
+        from parser import Parser
+        #self.settings = Parser.validator(self.map_file)
+        #self.node_graph = Graph(settings)
         self.state = "running"
 
-    def _update(self, events: list[str, ...]) -> None:
+    def _update(self, events: list[str]) -> None:
+        # self.algo
         pass
 
     def _run(self) -> None:
@@ -54,6 +56,7 @@ class FlyIn:
             events = pygame.event.get()
             program_states[self.state](events)
             pygame.display.flip()
+
 
 def main() -> None:
     if len(sys.argv) != 1:
