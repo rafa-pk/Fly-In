@@ -14,7 +14,6 @@ class FlyIn:
         pygame.display.set_caption("Fly In (Visualizer) @ 42Belgium")
         self.running: bool = True
         self.state: str = None
-        self.settings = None
         self.map_file: str = None
         self.file_menu = FileMenu(self.screen, self)
         self._run()
@@ -35,8 +34,8 @@ class FlyIn:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
         from parser import Parser
-        #self.settings = Parser.validator(self.map_file)
-        #self.node_graph = Graph(settings)
+        parser = Parser()
+        self.node_graph: Graph = parser.create_graph(self.map_file)
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:
