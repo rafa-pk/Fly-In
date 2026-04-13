@@ -51,10 +51,14 @@ class FlyIn:
                     }
         self.state = "menu"
 
-        while self.running:
-            events = pygame.event.get()
-            program_states[self.state](events)
-            pygame.display.flip()
+        try:
+            while self.running:
+                events = pygame.event.get()
+                program_states[self.state](events)
+                pygame.display.flip()
+        except KeyboardInterrupt:
+            pygame.quit()
+            sys.exit(1)
 
 
 def main() -> None:
