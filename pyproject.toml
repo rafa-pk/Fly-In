@@ -1,0 +1,16 @@
+[project]
+name = "fly-in"
+version = "0.1.0"
+description = "Using pathfinding to simulate a drone fleet orientation"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.13.0",
+    "pygame>=2.6.1",
+]
+
+[dependency-groups]
+dev = [
+    "flake8>=7.3.0",
+    "mypy>=1.20.1",
+]

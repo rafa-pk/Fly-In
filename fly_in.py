@@ -1,7 +1,7 @@
 import sys
 import pygame
 from file_menu import FileMenu
-#from parser import Parser
+from parser import Parser
 
 
 class FlyIn:
@@ -33,7 +33,7 @@ class FlyIn:
     def _program_loading(self, events: list[str]) -> None:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
-        from parser import Parser
+        # from parser import Parser
         parser = Parser()
         self.node_graph: Graph = parser.create_graph(self.map_file)
         self.state = "running"
