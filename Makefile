@@ -15,7 +15,7 @@ VENV = .venv
 PY = python
 
 install:
-	uv python install $(shell cat .python-version)
+	uv python install 3.12
 	uv sync
 	@echo Virtual environment setup complete!
 
