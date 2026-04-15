@@ -87,6 +87,10 @@ class Parser:
         try:
             graph.nb_of_drones = int(settings[0][1])
             for key, value in settings[1:]:
+                start = [type for type, info in settings if type == NodeTypes.START.value]
+                end = [type for type, info in settings if type == NodeTypes.END.value]
+                if len(start) > 1 or len(end) > 1:
+                    raise ValueError("Only one start_hub and end_hub are allowed")
                 if key in [k.value for k in NodeTypes]: 
                     node = self._create_node(key, value)
                     graph.add_node(node)

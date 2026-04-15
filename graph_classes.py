@@ -61,8 +61,11 @@ class Node(BaseModel):
 class Edge(BaseModel):
     connection: tuple[str, str]
     cost: float
-    max_link_capacity: int = Field(default=1)
+    max_link_capacity: int = Field(default=1, ge=1)
     color: str = "black"
+
+    # @model_validator(mode='after')
+
 
 
 class Graph:
@@ -94,6 +97,8 @@ class Graph:
         self.connections[node2].append(edge)
 
     def validate(self) -> None:
+        seen = set()
+
         if self.start is None:
             raise ValueError("Graph has no 'start_hub'")
         if self.end is None:
@@ -101,4 +106,9 @@ class Graph:
         coordinates = [(node.x, node.y) for node in self.nodes.values()]
         if len(coordinates) != len(set(coordinates)):
             raise ValueError("Graph has duplicate coordinates")
-
+        for node, edges in self.connections.items():
+            for edge in edges:
+                pair = frozenset({node, edge.connection[1]})
+                if pair in seen:
+                    raise ValueError(f"Duplicate connection: '{node}' and '{edge.connection[1]}' were already connected")
+                seen.add(pair)

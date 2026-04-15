@@ -2,6 +2,7 @@ import sys
 import pygame
 from file_menu import FileMenu
 from parser import Parser
+from pathfinding import Pathfinder
 
 
 class FlyIn:
@@ -33,13 +34,14 @@ class FlyIn:
     def _program_loading(self, events: list[str]) -> None:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
-        # from parser import Parser
         parser = Parser()
         self.node_graph: Graph = parser.create_graph(self.map_file)
+        # self.algo = Pathfinder(self.node_graph)
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:
-        # self.algo
+        self.algo.step()
+        # self
         pass
 
     def _run(self) -> None:
@@ -56,7 +58,8 @@ class FlyIn:
                 events = pygame.event.get()
                 program_states[self.state](events)
                 pygame.display.flip()
-        except KeyboardInterrupt:
+        except Exception, KeyboardInterrupt:
+            print("Error: Main loop: Program interrupted")
             pygame.quit()
             sys.exit(1)
 
