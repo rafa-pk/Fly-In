@@ -2,7 +2,8 @@ import sys
 import pygame
 from file_menu import FileMenu
 from parser import Parser
-from pathfinding import Pathfinder
+from algo_classes import Utils
+from algorithms import FleetPlanner
 
 
 class FlyIn:
@@ -35,13 +36,14 @@ class FlyIn:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
         parser = Parser()
-        self.node_graph: Graph = parser.create_graph(self.map_file)
-        # self.algo = Pathfinder(self.node_graph)
+        self.node_graph = parser.create_graph(self.map_file)
+        drones = Utils.init_drones(self.node_graph)
+        print(drones)
+        planner = FleetPlanner(drones, graph)
+        # planner.plan_routes()
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:
-        self.algo.step()
-        # self
         pass
 
     def _run(self) -> None:
@@ -58,7 +60,7 @@ class FlyIn:
                 events = pygame.event.get()
                 program_states[self.state](events)
                 pygame.display.flip()
-        except Exception, KeyboardInterrupt:
+        except KeyboardInterrupt:
             print("Error: Main loop: Program interrupted")
             pygame.quit()
             sys.exit(1)

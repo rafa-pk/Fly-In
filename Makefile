@@ -19,10 +19,10 @@ install:
 	uv sync
 	@echo Virtual environment setup complete!
 
-run: $(VENV)
+run:
 	uv run $(PY) $(NAME)
 
-debug: $(VENV)
+debug:
 	uv run $(PY) -m pdb $(NAME)
 
 lint:
@@ -44,5 +44,6 @@ fclean: clean
 	rm -rf .venv/
 	@echo Project reset complete
 
+re: clean run
 
-.PHONY: install run debug lint lint-strict clean fclean
+.PHONY: install run debug lint lint-strict clean fclean re

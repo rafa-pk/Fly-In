@@ -54,7 +54,7 @@ class Parser:
                     case MetadataKeys.MAX_DRONES:
                         node_data["max_drones"] = meta_val
                     case _:
-                        raise ValueError("Field 'name' not accepted as node metadata")
+                        raise ValueError(f"Field '{meta_key}' not accepted as node metadata") 
         except Exception as message:
             print(f"Parsing Error: Node creation failed ({message})")
             sys.exit(1)
@@ -85,7 +85,7 @@ class Parser:
         graph: "Graph" = Graph()
 
         try:
-            graph.nb_of_drones = int(settings[0][1])
+            graph.nb_drones = int(settings[0][1])
             for key, value in settings[1:]:
                 start = [type for type, info in settings if type == NodeTypes.START.value]
                 end = [type for type, info in settings if type == NodeTypes.END.value]

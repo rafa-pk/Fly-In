@@ -40,6 +40,13 @@ class Node(BaseModel):
     zone: ZoneTypes = Field(default=ZoneTypes.NORMAL)
     color: str = Field(default="green")
     max_drones: int = Field(default=None, ge=1)
+    cost_modifier: int = 0
+
+    @model_validator(mode='after')
+    def define_cost_modifier(self) -> Self:
+        NODE_COST = {"normal": 0, "priority": -5, "restricted": +20}
+        self.cost_modifier = NODE_COST[self.zone.value]
+        return self 
 
     @model_validator(mode='after')
     def node_validator(self) -> Self:
@@ -63,9 +70,6 @@ class Edge(BaseModel):
     cost: float
     max_link_capacity: int = Field(default=1, ge=1)
     color: str = "black"
-
-    # @model_validator(mode='after')
-
 
 
 class Graph:
