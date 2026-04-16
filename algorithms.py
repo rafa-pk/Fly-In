@@ -1,6 +1,6 @@
 import pygame as pygame
 from graph_classes import Graph, Node, Edge
-from algo_classes import Node, Utils  # , HeapQueue
+from algo_classes import Node, Utils, HeapQueue
 
 
 # class ReservationTable:
@@ -12,7 +12,7 @@ class FleetPlanner:
         self.drones = drones
         self.graph = graph
 
-    def st_astar(drone: Drone) -> list[tuple[str, float]]:
+    def space_time_astar(drone: Drone) -> list[tuple[str, float]]:
         pass
 
 
@@ -21,7 +21,7 @@ class FleetPlanner:
 
     def plan_routes(self) -> None:
         for drone in sorted(self.drones, key=lambda field: drone.priority):
-            path = self.st_astar(drone)
+            path = self.space_time_astar(drone)
             if path:
                 drone.path = path
                 drone.status = "routing"
