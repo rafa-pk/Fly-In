@@ -37,9 +37,11 @@ class FlyIn:
         algorithmic logic"""
         parser = Parser()
         self.node_graph = parser.create_graph(self.map_file)
+        # print(self.node_graph.nodes)
+        # print(self.node_graph.connections)
         drones = Utils.init_drones(self.node_graph)
         print(drones)
-        planner = FleetPlanner(drones, graph)
+        # planner = FleetPlanner(drones, graph)
         # planner.plan_routes()
         self.state = "running"
 
@@ -51,7 +53,7 @@ class FlyIn:
         program_states = {
                     "menu": self._starting_menu,
                     "loading": self._program_loading,
-                    "running":self._update,
+                    "running": self._update,
                     }
         self.state = "menu"
 

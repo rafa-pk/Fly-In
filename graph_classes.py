@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 from pygame import Color
 from typing import Any, Self
@@ -5,18 +6,18 @@ from pydantic import BaseModel, ValidationError, Field, model_validator
 
 
 class MapEntries(Enum):
-        NB_DRONES = "nb_drones"
-        START_HUB = "start_hub"
-        HUB = "hub"
-        END_HUB = "end_hub"
-        CONNECTION = "connection"
+    NB_DRONES = "nb_drones"
+    START_HUB = "start_hub"
+    HUB = "hub"
+    END_HUB = "end_hub"
+    CONNECTION = "connection"
 
 
 class MetadataKeys(Enum):
-        COLOR = "color"
-        ZONE = "zone"
-        MAX_DRONES = "max_drones"
-        MAX_LINK_CAPACITY = "max_link_capacity"
+    COLOR = "color"
+    ZONE = "zone"
+    MAX_DRONES = "max_drones"
+    MAX_LINK_CAPACITY = "max_link_capacity"
 
 
 class NodeTypes(Enum):
@@ -33,20 +34,13 @@ class ZoneTypes(Enum):
 
 
 class Node(BaseModel):
-    name:str = Field(min_length=1)
+    name: str = Field(min_length=1)
     type: NodeTypes
-    x: int # = Field(ge=0)
-    y: int # = Field(ge=0)
+    x: int  # = Field(ge=0)
+    y: int  # = Field(ge=0)
     zone: ZoneTypes = Field(default=ZoneTypes.NORMAL)
     color: str = Field(default="green")
     max_drones: int = Field(default=None, ge=1)
-    cost_modifier: int = 0
-
-    @model_validator(mode='after')
-    def define_cost_modifier(self) -> Self:
-        NODE_COST = {"normal": 0, "priority": -5, "restricted": +20}
-        self.cost_modifier = NODE_COST[self.zone.value]
-        return self 
 
     @model_validator(mode='after')
     def node_validator(self) -> Self:

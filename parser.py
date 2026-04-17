@@ -38,9 +38,9 @@ class Parser:
             fields = value.split()
             node_data = {
                 "name": fields[0],
-                 "type": key,   
-                 "x": int(fields[1]),
-                 "y": int(fields[2]),
+                "type": key,   
+                "x": int(fields[1]),
+                "y": int(fields[2]),
             }
 
             metadata = [field.strip('[]') for field in fields[3:]]
@@ -69,7 +69,13 @@ class Parser:
             fields = value.split()
             node1, node2 = fields[0].split('-', 1)
             edge_data["connection"] = (node1, node2)
-            edge_data["cost"] = graph.nodes[node1].euclidean_distance_to(graph.nodes[node2])
+            edge_costs = {
+                "normal": 1,
+                "restricted": 2,
+                "priority": 1,
+                "blocked": None,
+            }
+            edge_data["cost"] = edge_costs[graph.nodes[node2].zone.value]
             if len(fields) > 1:
                 meta_key, meta_value = fields[1].strip('[]').split('=', 1)    
                 if MetadataKeys(meta_key) == MetadataKeys.MAX_LINK_CAPACITY:
@@ -81,7 +87,7 @@ class Parser:
 
     def create_graph(self, map_file: str) -> Graph:
 
-        settings: list[tup(str, str)] = self._open_file(map_file)
+        settings: list[tuple[str, str]] = self._open_file(map_file)
         graph: "Graph" = Graph()
 
         try:
