@@ -12,8 +12,6 @@ class Drone:
     path: list[tuple[str, float]]
     status: str = "idle"
 
-    # def reconstruct_path(self, path, node, t)
-
 
 class HeapQueue:
 
@@ -71,7 +69,7 @@ class HeapQueue:
             self._sift_down(i)
 
     def __bool__(self) -> bool:
-        return bool(self.data) 
+        return bool(self._data) 
 
     def __len__(self) -> int:
         return len(self._data)

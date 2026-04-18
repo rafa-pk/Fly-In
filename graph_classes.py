@@ -61,7 +61,7 @@ class Node(BaseModel):
 
 class Edge(BaseModel):
     connection: tuple[str, str]
-    cost: float
+    cost: int
     max_link_capacity: int = Field(default=1, ge=1)
     color: str = "black"
 
