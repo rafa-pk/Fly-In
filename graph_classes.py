@@ -97,6 +97,8 @@ class Graph:
     def validate(self) -> None:
         seen = set()
 
+        if self.nb_drones < 0:
+            raise ValueError("'nb_drones' value cannot be negative")
         if self.start is None:
             raise ValueError("Graph has no 'start_hub'")
         if self.end is None:
@@ -106,7 +108,10 @@ class Graph:
             raise ValueError("Graph has duplicate coordinates")
         for node, edges in self.connections.items():
             for edge in edges:
-                pair = frozenset({node, edge.connection[1]})
+                neighbour = edge.connection[1]
+                if node > neighbour:
+                    continue
+                pair = frozenset({node, neighbour})
                 if pair in seen:
-                    raise ValueError(f"Duplicate connection: '{node}' and '{edge.connection[1]}' were already connected")
+                    raise ValueError(f"Duplicate connection: '{node}' and '{neighbour}' were already connected")
                 seen.add(pair)

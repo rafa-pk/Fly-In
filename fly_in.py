@@ -37,14 +37,9 @@ class FlyIn:
         algorithmic logic"""
         parser = Parser()
         self.node_graph = parser.create_graph(self.map_file)
-        # print(self.node_graph.nodes)
-        # print(self.node_graph.connections)
         drones = Utils.init_drones(self.node_graph)
-        # print(drones)
         planner = FleetPlanner(drones, self.node_graph)
         planner.plan_routes()
-        # for drone in drones:
-        #    print(drone.path)
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:
