@@ -4,6 +4,7 @@ from file_menu import FileMenu
 from parser import Parser
 from algo_classes import Utils
 from algorithms import FleetPlanner
+from simulation import Simulation
 
 
 class FlyIn:
@@ -37,13 +38,14 @@ class FlyIn:
         algorithmic logic"""
         parser = Parser()
         self.node_graph = parser.create_graph(self.map_file)
-        drones = Utils.init_drones(self.node_graph)
-        planner = FleetPlanner(drones, self.node_graph)
+        self.drones = Utils.init_drones(self.node_graph)
+        planner = FleetPlanner(self.drones, self.node_graph)
         planner.plan_routes()
+        self.sim = Simulation(self.screen, self.node_graph, self.drones)
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:
-        pass
+        self.sim.run_step(events)
 
     def _run(self) -> None:
         """main graphical loop which detects hooks and executes program"""
