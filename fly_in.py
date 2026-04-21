@@ -41,7 +41,7 @@ class FlyIn:
         self.drones = Utils.init_drones(self.node_graph)
         planner = FleetPlanner(self.drones, self.node_graph)
         planner.plan_routes()
-        self.sim = Simulation(self.screen, self.node_graph, self.drones)
+        self.sim = Simulation(self, self.screen, self.node_graph, self.drones)
         self.state = "running"
 
     def _update(self, events: list[str]) -> None:

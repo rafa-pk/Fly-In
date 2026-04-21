@@ -1,6 +1,7 @@
 from typing import Any
 from dataclasses import dataclass 
 from graph_classes import Graph
+import pygame
 
 
 @dataclass
@@ -88,3 +89,22 @@ class Utils:
                       priority=i,
                       path=[])
                 for i in range(graph.nb_drones)]
+
+    @staticmethod
+    def draw_text(screen, text: str, font: str, color: tuple[int, int, int],
+                  x: int, y: int) -> None:
+        """method to draw text to screen"""
+        image = font.render(text, True, color)
+        screen.blit(image, (x, y))
+    
+    @staticmethod
+    def draw_text_box(screen, text: str, text_color: tuple[int, int, int], 
+                      font: str, bg_color: tuple[int, int, int],
+                      x: int, y: int, padding: int) -> None:
+        """method to draw text to screen with bg underneath"""
+        image = font.render(text, True, text_color)
+        text_box = image.get_rect(topleft=(x,y))
+        bg_rect = pygame.Rect(text_box.x - padding, text_box.y - padding, 
+                              text_box.width + padding*2, text_box.height + padding*2)
+        pygame.draw.rect(screen, bg_color, bg_rect, 0)
+        screen.blit(image, (x, y))
