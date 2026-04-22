@@ -1,6 +1,8 @@
 import sys
 import os
 import pygame
+import random
+import webbrowser
 from algo_classes import Utils
 
 
@@ -17,12 +19,14 @@ class Simulation:
         wid, height = self.screen.get_size()
         self.controller_body = pygame.Rect(20, int(height * 0.20 - 10), int(wid * 0.60), int(height * 0.80 - 10))
         self.controller_l_antena = pygame.Rect(int(wid * 0.60 * 0.20), 20, 60, int(height * 0.20))
-        self.controller_r_antena = pygame.Rect(int(wid * 0.60 * 0.70), 20, 60, int(height * 0.20))
+        self.controller_r_antena = pygame.Rect(int(wid * 0.60 * 0.80), 20, 60, int(height * 0.20))
         self.controller_screen = self.controller_body.inflate(-40, -250)
         self.controller_screen.y = int(height * 0.80 * 0.60)
         self.dashboard = pygame.Rect(int(wid * 0.60 + 40), 20, int(wid * 0.35), int(height * 0.95)) 
         self.dashboard_term = self.dashboard.inflate(-40, -220)
         self.dashboard_term.y = int(height * 0.35 * 0.80)
+        self.screamer_active = False
+        self.fah = pygame.mixer.Sound("sfx/FAH.mp3")
 
         xs = [n.x for n in self.graph.nodes.values()]
         ys = [n.y for n in self.graph.nodes.values()]
@@ -55,15 +59,18 @@ class Simulation:
         bl2 = (self.controller_body.left + 250, self.controller_body.top + 160)
         br1 = (self.controller_body.right - 300, self.controller_body.top + 80)
         br2 = (self.controller_body.right - 250, self.controller_body.top + 160)
+        self.magic_button = pygame.Rect(br1[0] - 15, br1[1] - 15, 15 * 2, 15 * 2)
+        self.magic_button2 = pygame.Rect(jl[0] - 30, jl[1] - 30, 30 * 2, 30 * 2)
         pygame.draw.circle(self.screen, (0, 0, 0), bl1, 15)
         pygame.draw.circle(self.screen, (0, 0, 0), bl2, 15)
         pygame.draw.circle(self.screen, (0, 0, 0), br1, 15)
         pygame.draw.circle(self.screen, (0, 0, 0), br2, 15)
         
         logo = pygame.image.load("assets/logo.png")
+        logo = pygame.transform.scale(logo, (90, 90))
         center_button_start = (self.controller_body.left + 385, self.controller_body.top + 200)
         center_button_end = (self.controller_body.left + 455, self.controller_body.top + 200)
-        self.screen.blit(logo, (self.controller_body.left + 300, self.controller_body.top))
+        self.screen.blit(logo, (self.controller_body.left + 370, self.controller_body.top + 20))
         pygame.draw.line(self.screen, (0, 0, 0), center_button_start, center_button_end, width=12)
 
     def _draw_dashboard(self) -> None:
@@ -87,6 +94,7 @@ class Simulation:
         elif "challenger" in dirname:
             difficulty = "challenger"
         Utils.draw_text(self.screen, f"- Difficulty: {difficulty}", info_font, (0, 0, 0), info_x, info_y + 60)
+        Utils.draw_text(self.screen, "  Moves:", info_font, (0, 0, 0), info_x, info_y + 90)
         pygame.draw.rect(self.screen, (0, 0, 0), self.dashboard_term, border_radius=2)
         term_header_x = self.dashboard_term.x + 10
         term_header_y = self.dashboard_term.y + 10
@@ -126,10 +134,42 @@ class Simulation:
 
     #def _animate_step(self) -> None:
 
+    def _handle_events(self, events: list[str]) -> None:
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.fly_in.status(False)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.fly_in.status(False)
+                if event.key == pygame.K_x:
+                    if self.screamer_active:
+                        self.screamer_active = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                try:
+                    if self.magic_button.collidepoint(pos):
+                        res = webbrowser.open_new("https://www.youtube.com/watch?v=xvFZjo5PgG0")
+                        if not res:
+                            raise RuntimeError("Magic button did not work :(")
+                    elif self.magic_button2.collidepoint(pos):
+                        faces = ["wkhattab", "mbucci", "rpousseu", "hmesnard"]
+                        chosen = random.choice(faces)
+                        self.screamer = pygame.image.load(f"assets/{chosen}.png")
+                        self.screamer = pygame.transform.scale(self.screamer, self.screen.get_size())
+                        self.screamer_active = True
+                    else:
+                        self.fah.play()
+                except Exception as message:
+                    print(f"{message}")
 
     def run_step(self, events: list[str]) -> None:
-        self.screen.fill((0, 0, 0))
-        self._draw_controller()
-        self._draw_dashboard()
-        self._draw_graph()
-        #self._animate_step()
+        self._handle_events(events)
+        if self.screamer_active:
+            self.screen.blit(self.screamer, (0, 0))
+            pygame.display.flip()
+        else:
+            self.screen.fill((0, 0, 0))
+            self._draw_controller()
+            self._draw_dashboard()
+            self._draw_graph()
+            #self._animate_step()
