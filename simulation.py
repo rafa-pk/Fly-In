@@ -10,11 +10,12 @@ class Simulation:
 
     TROJANS = (156, 232, 255)
     EDGE = (255, 242, 175)
+    MAX_VISIBLE_LINES = 20
  
-    def __init__(self, fly_in, screen, graph, nodes) -> None:
+    def __init__(self, fly_in, screen, graph, drones) -> None:
         self.screen = screen
         self.graph = graph
-        self.nodes = nodes
+        self.drones = drones
         self.fly_in = fly_in
         wid, height = self.screen.get_size()
         self.controller_body = pygame.Rect(20, int(height * 0.20 - 10), int(wid * 0.60), int(height * 0.80 - 10))
@@ -38,6 +39,47 @@ class Simulation:
         padded_window_w = self.controller_screen.width - padding * 2
         padded_window_h = self.controller_screen.height - padding * 2
         self.scale = min(padded_window_w / g_width, padded_window_h / g_height)
+        
+        self.sim_t = 0
+        self.accumulator = 0.0
+        self.step_duration = 2.0
+        self.paused = False
+        self.drone_img = pygame.image.load("assets/drone.png")
+        self.drone_img = pygame.transform.smoothscale(self.drone_img, (10, 10))
+        self.log_lines: list[str] = []
+
+    def _handle_events(self, events: list[str]) -> None:
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.fly_in.status(False)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.fly_in.status(False)
+                if event.key == pygame.K_x:
+                    if self.screamer_active:
+                        self.screamer_active = False
+                if event.key == pygame.K_SPACE:
+                    if not self.paused:
+                        self.paused = True
+                    else:
+                        self.paused = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                try:
+                    if self.magic_button.collidepoint(pos):
+                        res = webbrowser.open_new("https://www.youtube.com/watch?v=xvFZjo5PgG0")
+                        if not res:
+                            raise RuntimeError("Magic button did not work :(")
+                    elif self.magic_button2.collidepoint(pos):
+                        faces = ["wkhattab", "mbucci", "rpousseu", "hmesnard"]
+                        chosen = random.choice(faces)
+                        self.screamer = pygame.image.load(f"assets/{chosen}.png")
+                        self.screamer = pygame.transform.scale(self.screamer, self.screen.get_size())
+                        self.screamer_active = True
+                    else:
+                        self.fah.play()
+                except Exception as message:
+                    print(f"{message}")
 
     def _draw_controller(self) -> None:
         pygame.draw.rect(self.screen, self.TROJANS, self.controller_body, border_radius=24)
@@ -100,12 +142,16 @@ class Simulation:
         term_header_y = self.dashboard_term.y + 10
         term_font = pygame.font.SysFont("Microsoft Sans Serif", 13)
         Utils.draw_text(self.screen, "rvaz-da-@simulation fly_in  % python3 fly_in.py", term_font, (250, 250, 250), term_header_x, term_header_y)
+        offset = 15
+        for line in self.log_lines[-self.MAX_VISIBLE_LINES:]:
+            Utils.draw_text(self.screen, line, term_font, (250, 250, 250), term_header_x, term_header_y + offset)
+            offset += 15
 
     def _transform_coords(self, x: int, y: int) -> tuple[int, int]:
         screen_cx = (self.real_minx + self.real_maxx) / 2
         screen_cy = (self.real_miny + self.real_maxy) / 2
         screen_x = self.controller_screen.centerx + (x - screen_cx) * self.scale
-        screen_y = self.controller_screen.centerx + (y - screen_cy) * self.scale
+        screen_y = self.controller_screen.centery + (y - screen_cy) * self.scale
         return (int(screen_x), int(screen_y))
 
     def _draw_graph(self) -> None:
@@ -130,46 +176,44 @@ class Simulation:
         for node in nodes:
             node_o = self.graph.nodes[node]
             nx, ny = self._transform_coords(node_o.x, node_o.y)
-            pygame.draw.circle(self.screen, node_o.color, (nx, ny), 20) 
+            pygame.draw.circle(self.screen, node_o.color, (nx, ny), 10) 
 
-    #def _animate_step(self) -> None:
+    def _log_moves(self) -> None:
+        log = ""
+        for drone in self.drones:
+            if not drone.path:
+                continue
+            for (node, t) in drone.path:
+                if t == self.sim_t:
+                    log += f"{drone.id}-{node} "
+        if log:
+            self.log_lines.append(log)
+            print(log)
 
-    def _handle_events(self, events: list[str]) -> None:
-        for event in events:
-            if event.type == pygame.QUIT:
-                self.fly_in.status(False)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.fly_in.status(False)
-                if event.key == pygame.K_x:
-                    if self.screamer_active:
-                        self.screamer_active = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                try:
-                    if self.magic_button.collidepoint(pos):
-                        res = webbrowser.open_new("https://www.youtube.com/watch?v=xvFZjo5PgG0")
-                        if not res:
-                            raise RuntimeError("Magic button did not work :(")
-                    elif self.magic_button2.collidepoint(pos):
-                        faces = ["wkhattab", "mbucci", "rpousseu", "hmesnard"]
-                        chosen = random.choice(faces)
-                        self.screamer = pygame.image.load(f"assets/{chosen}.png")
-                        self.screamer = pygame.transform.scale(self.screamer, self.screen.get_size())
-                        self.screamer_active = True
-                    else:
-                        self.fah.play()
-                except Exception as message:
-                    print(f"{message}")
+    def _get_frac_time(self, dt: float) -> float:
+        if not self.paused:
+            self.accumulator += dt
+            while self.accumulator >= self.step_duration:
+                self.accumulator -= self.step_duration
+                self.sim_t += 1
+                self._log_moves()
+        return self.sim_t + (self.accumulator / self.step_duration)
 
-    def run_step(self, events: list[str]) -> None:
+    def _draw_drones(self, frac_t: float) -> None:
+        for drone in self.drones:
+            dx, dy = drone.get_pos(frac_t, self.graph)
+            sx, sy = self._transform_coords(dx, dy)
+            rect = self.drone_img.get_rect(center=(sx, sy))
+            self.screen.blit(self.drone_img, rect)
+
+    def run_step(self, events: list[str], dt: float) -> None:
         self._handle_events(events)
         if self.screamer_active:
             self.screen.blit(self.screamer, (0, 0))
-            pygame.display.flip()
         else:
+            frac_t = self._get_frac_time(dt)
             self.screen.fill((0, 0, 0))
             self._draw_controller()
             self._draw_dashboard()
             self._draw_graph()
-            #self._animate_step()
+            self._draw_drones(frac_t)

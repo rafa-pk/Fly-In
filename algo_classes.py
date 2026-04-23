@@ -13,6 +13,27 @@ class Drone:
     path: list[tuple[str, float]]
     status: str = "idle"
 
+    def get_pos(self, frac_t: float, graph: Graph) -> tuple[float, float]:
+        if not self.path:
+            start = graph.nodes[self.origin]
+            return start.x, start.y
+        if frac_t <= self.path[0][1]:
+            start = graph.nodes[self.path[0][0]]
+            return start.x, start.y
+        if frac_t >= self.path[-1][1]:
+            end = graph.nodes[self.path[-1][0]]
+            return end.x, end.y
+        for i in range(len(self.path) - 1):
+            pos1, t1 = self.path[i]
+            pos2, t2 = self.path[i + 1]
+            pos1 = graph.nodes[pos1]
+            pos2 = graph.nodes[pos2]
+            if t1 <= frac_t <= t2:
+                progress = (frac_t - t1) / (t2 - t1)
+                x = pos1.x + (pos2.x - pos1.x) * progress
+                y = pos1.y + (pos2.y - pos1.y) * progress
+        return x, y
+
 
 class HeapQueue:
 
@@ -83,7 +104,7 @@ class Utils:
 
     @staticmethod
     def init_drones(graph: Graph) -> list[Drone]:
-        return [Drone(id=f"drone_{i}",
+        return [Drone(id=f"D{i}",
                       origin=graph.start.name,
                       destination=graph.end.name,
                       priority=i,

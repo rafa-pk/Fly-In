@@ -108,7 +108,8 @@ class Graph:
             raise ValueError("Graph has duplicate coordinates")
         for node, edges in self.connections.items():
             for edge in edges:
-                neighbour = edge.connection[1]
+                node1, node2 = edge.connection
+                neighbour = node2 if node1 == node else node1
                 if node > neighbour:
                     continue
                 pair = frozenset({node, neighbour})

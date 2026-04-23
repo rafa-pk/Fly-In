@@ -72,12 +72,12 @@ class FleetPlanner:
         possibilities.push((0, self.graph.start.name, 0))
         while possibilities:
             g_cost, node, t = possibilities.pop()
-            print(f"pop ({node}, t={t}) g={g_cost}")
+            # print(f"pop ({node}, t={t}) g={g_cost}")
             if (node, t) in visited:
                 continue
             visited.add((node, t))
             if node == self.graph.end.name:
-                print("Gros caca qui pue")
+                # print("Gros caca qui pue")
                 return self.reconstruct_path(previous, t)
             for edge in self.graph.connections[node]:
                 node1, node2 = edge.connection

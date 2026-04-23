@@ -24,7 +24,7 @@ class FlyIn:
     def status(self, program_status: bool) -> None:
         self.running = program_status
 
-    def _starting_menu(self, events: list[str]) -> None:
+    def _starting_menu(self, events: list[str], dt: float) -> None:
         """method which calls the menu visualizer, stores the map to be used
         and updates status"""
         self.map_file = self.file_menu.menu(events)
@@ -33,7 +33,7 @@ class FlyIn:
             self.screen.fill((0, 0, 0))
             self.state = "loading"
 
-    def _program_loading(self, events: list[str]) -> None:
+    def _program_loading(self, events: list[str], dt: float) -> None:
         """method which calls loading visualizer while doing the parsing and
         algorithmic logic"""
         parser = Parser()
@@ -41,11 +41,13 @@ class FlyIn:
         self.drones = Utils.init_drones(self.node_graph)
         planner = FleetPlanner(self.drones, self.node_graph)
         planner.plan_routes()
+        for drone in self.drones:
+            print(drone.path)
         self.sim = Simulation(self, self.screen, self.node_graph, self.drones)
         self.state = "running"
 
-    def _update(self, events: list[str]) -> None:
-        self.sim.run_step(events)
+    def _update(self, events: list[str], dt: float) -> None:
+        self.sim.run_step(events, dt)
 
     def _run(self) -> None:
         """main graphical loop which detects hooks and executes program"""
@@ -55,11 +57,13 @@ class FlyIn:
                     "running": self._update,
                     }
         self.state = "menu"
+        time = pygame.time.Clock()
 
         try:
             while self.running:
+                dt = time.tick(60) / 1000.0
                 events = pygame.event.get()
-                program_states[self.state](events)
+                program_states[self.state](events, dt)
                 pygame.display.flip()
         except KeyboardInterrupt:
             print("Error: Main loop: Program interrupted")
