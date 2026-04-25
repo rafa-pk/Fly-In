@@ -10,7 +10,7 @@ class Simulation:
 
     TROJANS = (156, 232, 255)
     EDGE = (255, 242, 175)
-    MAX_VISIBLE_LINES = 20
+    MAX_VISIBLE_LINES = 34
  
     def __init__(self, fly_in, screen, graph, drones) -> None:
         self.screen = screen
@@ -39,14 +39,21 @@ class Simulation:
         padded_window_w = self.controller_screen.width - padding * 2
         padded_window_h = self.controller_screen.height - padding * 2
         self.scale = min(padded_window_w / g_width, padded_window_h / g_height)
+        self._relative_node_coords: dict[str, tuple[int, int]] = {}
         
         self.sim_t = 0
         self.accumulator = 0.0
-        self.step_duration = 2.0
+        self.step_duration = 1
         self.paused = False
         self.drone_img = pygame.image.load("assets/drone.png")
-        self.drone_img = pygame.transform.smoothscale(self.drone_img, (10, 10))
+        self.drone_img = pygame.transform.smoothscale(self.drone_img, (20, 20))
+        self.moves = 0
         self.log_lines: list[str] = []
+
+    def _draw_info(self, node: str, coords: tuple[int, int]) -> None:
+        nx, ny = coords
+        background_rect = pygame.Rect(nx + 15, ny + 20, 300, 700)
+        pygame.draw.rect(self.screen, (16, 16, 16, 0.5), background_rect, border_radius=24)
 
     def _handle_events(self, events: list[str]) -> None:
         for event in events:
@@ -80,6 +87,13 @@ class Simulation:
                         self.fah.play()
                 except Exception as message:
                     print(f"{message}")
+            if event.type == pygame.MOUSEMOTION:
+                mx, my = event.pos
+                hit_radius = 10
+                for node, (nx, ny) in self._relative_node_coords.items():
+                    if (mx - nx) ** 2 + (my - ny) ** 2 <= hit_radius ** 2:
+                        self._draw_info(node, (nx, ny))
+                        break
 
     def _draw_controller(self) -> None:
         pygame.draw.rect(self.screen, self.TROJANS, self.controller_body, border_radius=24)
@@ -136,7 +150,7 @@ class Simulation:
         elif "challenger" in dirname:
             difficulty = "challenger"
         Utils.draw_text(self.screen, f"- Difficulty: {difficulty}", info_font, (0, 0, 0), info_x, info_y + 60)
-        Utils.draw_text(self.screen, "  Moves:", info_font, (0, 0, 0), info_x, info_y + 90)
+        Utils.draw_text(self.screen, f"- Moves: {self.moves}", info_font, (0, 0, 0), info_x, info_y + 90)
         pygame.draw.rect(self.screen, (0, 0, 0), self.dashboard_term, border_radius=2)
         term_header_x = self.dashboard_term.x + 10
         term_header_y = self.dashboard_term.y + 10
@@ -176,6 +190,7 @@ class Simulation:
         for node in nodes:
             node_o = self.graph.nodes[node]
             nx, ny = self._transform_coords(node_o.x, node_o.y)
+            self._relative_node_coords[node] = (nx, ny)
             pygame.draw.circle(self.screen, node_o.color, (nx, ny), 10) 
 
     def _log_moves(self) -> None:
@@ -183,10 +198,15 @@ class Simulation:
         for drone in self.drones:
             if not drone.path:
                 continue
-            for (node, t) in drone.path:
+            for i, (node, t) in enumerate(drone.path):
+                prev_n, prev_t = drone.path[i - 1]
                 if t == self.sim_t:
+                    if node == prev_n:
+                        continue
                     log += f"{drone.id}-{node} "
+
         if log:
+            self.moves += 1
             self.log_lines.append(log)
             print(log)
 
@@ -200,10 +220,11 @@ class Simulation:
         return self.sim_t + (self.accumulator / self.step_duration)
 
     def _draw_drones(self, frac_t: float) -> None:
-        for drone in self.drones:
+        for i, drone in enumerate(self.drones):
             dx, dy = drone.get_pos(frac_t, self.graph)
             sx, sy = self._transform_coords(dx, dy)
-            rect = self.drone_img.get_rect(center=(sx, sy))
+            ox, oy = Utils.drone_offset(i, len(self.drones))
+            rect = self.drone_img.get_rect(center=(sx + ox, sy + oy))
             self.screen.blit(self.drone_img, rect)
 
     def run_step(self, events: list[str], dt: float) -> None:

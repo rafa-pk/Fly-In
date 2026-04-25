@@ -89,7 +89,7 @@ class FleetPlanner:
                     g_cost_to_neighbour = g_cost + edge.cost
                 neighbour_max_drones = self.graph.nodes[neighbour].max_drones
                 if (self.graph.nodes[neighbour].zone == ZoneTypes.BLOCKED or
-                        self.res_table.is_reserved(neighbour, time_t) or
+                        # self.res_table.is_reserved(neighbour, time_t) or
                         self.res_table.zone_is_full(neighbour, time_t, neighbour_max_drones) or
                         self.res_table.edge_is_full(node, neighbour, time_t, edge.max_link_capacity)): 
                     continue
@@ -101,8 +101,8 @@ class FleetPlanner:
                     possibilities.push((g_cost_to_neighbour, neighbour, time_t))
             wait_possibility = (node, t + 1)
             max_drones = self.graph.nodes[node].max_drones
-            if (not self.res_table.is_reserved(node, t + 1) 
-                    and not self.res_table.zone_is_full(node, t + 1, max_drones)): 
+            if (#not self.res_table.is_reserved(node, t + 1) 
+                 not self.res_table.zone_is_full(node, t + 1, max_drones)): 
                 wait_g_cost = g_cost + 1
                 if wait_possibility not in g_cost_log or wait_g_cost < g_cost_log[wait_possibility]:
                     g_cost_log[wait_possibility] = wait_g_cost

@@ -1,6 +1,7 @@
 from typing import Any
 from dataclasses import dataclass 
 from graph_classes import Graph
+from math import pi, cos, sin
 import pygame
 
 
@@ -129,3 +130,11 @@ class Utils:
                               text_box.width + padding*2, text_box.height + padding*2)
         pygame.draw.rect(screen, bg_color, bg_rect, 0)
         screen.blit(image, (x, y))
+
+    @staticmethod
+    def drone_offset(index: int, total_drones: int) -> tuple[float, float]:
+        radius = 5
+        if total_drones <= 1:
+            return 0.0, 0.0
+        angle = 2 * pi * index / total_drones
+        return radius * cos(angle), radius * sin(angle)
