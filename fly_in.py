@@ -3,7 +3,7 @@ import pygame
 from file_menu import FileMenu
 from parser import Parser
 from algo_classes import Utils
-from algorithms import FleetPlanner
+from algo import FleetPlanner
 from simulation import Simulation
 
 
@@ -41,8 +41,6 @@ class FlyIn:
         self.drones = Utils.init_drones(self.node_graph)
         planner = FleetPlanner(self.drones, self.node_graph)
         planner.plan_routes()
-        for drone in self.drones:
-            print(drone.path)
         self.sim = Simulation(self, self.screen, self.node_graph, self.drones)
         self.state = "running"
 

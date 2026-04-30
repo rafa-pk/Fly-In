@@ -49,13 +49,27 @@ class Simulation:
         self.drone_img = pygame.transform.smoothscale(self.drone_img, (20, 20))
         self.moves = 0
         self.log_lines: list[str] = []
+        self._to_draw_info: tuple[str, int, int] = ()
 
-    def _draw_info(self, node: str, coords: tuple[int, int]) -> None:
-        nx, ny = coords
-        background_rect = pygame.Rect(nx + 15, ny + 20, 300, 700)
-        pygame.draw.rect(self.screen, (16, 16, 16, 0.5), background_rect, border_radius=24)
+    def _draw_info(self, node_coords: tuple[str, int, int]) -> None:
+        node, nx, ny = node_coords
+        title_font = pygame.font.SysFont("Arial", 30)
+        info_rect = pygame.Surface((300, 150), pygame.SRCALPHA)
+        info_rect.fill((133, 133, 133, 250))
+        node = self.graph.nodes[node]
+        tx = 5
+        ty = 50
+        ofs = 0
+        Utils.draw_text(info_rect, "Hub Info:", title_font, (0, 0, 0), 80, 5)
+        text_font = pygame.font.SysFont("Arial", 20)
+        text = {"Name: ": node.name, "Zone Type: ": node.zone.value, "Max Drones: ": node.max_drones}
+        for title, info in text.items():
+            Utils.draw_text(info_rect, f"{title}{info}", text_font, (0, 0, 0), tx, ty + ofs)
+            ofs += 30
+        self.screen.blit(info_rect, (nx + 5, ny - 160))
 
     def _handle_events(self, events: list[str]) -> None:
+        from fly_in import FlyIn
         for event in events:
             if event.type == pygame.QUIT:
                 self.fly_in.status(False)
@@ -70,6 +84,8 @@ class Simulation:
                         self.paused = True
                     else:
                         self.paused = False
+                if event.key == pygame.K_r:
+                    self.fly_in = FlyIn()           # raises silent error on file choice
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 try:
@@ -92,8 +108,10 @@ class Simulation:
                 hit_radius = 10
                 for node, (nx, ny) in self._relative_node_coords.items():
                     if (mx - nx) ** 2 + (my - ny) ** 2 <= hit_radius ** 2:
-                        self._draw_info(node, (nx, ny))
+                        self._to_draw_info = (node, nx, ny)
                         break
+                else:
+                    self._to_draw_info = ()
 
     def _draw_controller(self) -> None:
         pygame.draw.rect(self.screen, self.TROJANS, self.controller_body, border_radius=24)
@@ -129,6 +147,33 @@ class Simulation:
         self.screen.blit(logo, (self.controller_body.left + 370, self.controller_body.top + 20))
         pygame.draw.line(self.screen, (0, 0, 0), center_button_start, center_button_end, width=12)
 
+    def _wrap_line(self, line: str, font: pygame.font.Font, max_width) -> list[str]:
+        words = line.split(' ')
+        lines = []
+        current = ""
+
+        for word in words:
+            candidate = word if not current else current + " " + word
+            if font.size(candidate)[0] <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                if font.size(word)[0] > max_width:
+                    chunk = ""
+                    for char in word:
+                        if font.size(chunk + char)[0] <= max_width:
+                            chunk += char
+                        else:
+                            lines.append(chunk)
+                            chunk = char
+                    current = chunk
+                else:
+                    current = word
+        if current:
+            lines.append(current)
+        return lines
+
     def _draw_dashboard(self) -> None:
         pygame.draw.rect(self.screen, self.TROJANS, self.dashboard, border_radius=24)
         title_font = pygame.font.SysFont("Comic Sans MS", 40)
@@ -157,8 +202,11 @@ class Simulation:
         term_font = pygame.font.SysFont("Microsoft Sans Serif", 13)
         Utils.draw_text(self.screen, "rvaz-da-@simulation fly_in  % python3 fly_in.py", term_font, (250, 250, 250), term_header_x, term_header_y)
         offset = 15
-        for line in self.log_lines[-self.MAX_VISIBLE_LINES:]:
-            Utils.draw_text(self.screen, line, term_font, (250, 250, 250), term_header_x, term_header_y + offset)
+        visual_lines = []
+        for line in self.log_lines:
+            visual_lines.extend(self._wrap_line(line, term_font, self.dashboard_term.width))
+        for subline in visual_lines[-self.MAX_VISIBLE_LINES:]:
+            Utils.draw_text(self.screen, subline, term_font, (250, 250, 250), term_header_x, term_header_y + offset)
             offset += 15
 
     def _transform_coords(self, x: int, y: int) -> tuple[int, int]:
@@ -199,11 +247,16 @@ class Simulation:
             if not drone.path:
                 continue
             for i, (node, t) in enumerate(drone.path):
+                if i == 0:
+                    continue
                 prev_n, prev_t = drone.path[i - 1]
                 if t == self.sim_t:
                     if node == prev_n:
                         continue
                     log += f"{drone.id}-{node} "
+                elif prev_t < self.sim_t < t:
+                    connection = prev_n + '-' + node
+                    log += f"{drone.id}-{connection} "
 
         if log:
             self.moves += 1
@@ -238,3 +291,5 @@ class Simulation:
             self._draw_dashboard()
             self._draw_graph()
             self._draw_drones(frac_t)
+            if self._to_draw_info != ():
+                self._draw_info(self._to_draw_info)

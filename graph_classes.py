@@ -55,9 +55,6 @@ class Node(BaseModel):
             sys.exit(1)
         return self
 
-    def euclidean_distance_to(self, node: Self) -> float:
-        return round((((self.x - node.x) ** 2 + (self.y - node.y) ** 2) ** 0.5), 2)
-
 
 class Edge(BaseModel):
     connection: tuple[str, str]
