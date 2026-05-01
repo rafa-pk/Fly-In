@@ -26,12 +26,12 @@ debug:
 	uv run $(PY) -m pdb $(NAME)
 
 lint:
-	uv run flake8 .
-	uv run mypy .
+	uv run flake8 . --exclude=.venv
+	uv run mypy . --ignore-missing-imports
 
 lint-strict:
-	uv run flake8 .
-	uv run mypy --strict .
+	uv run flake8 . --exclude=.venv
+	uv run mypy --strict . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 clean:
 	rm -rf __pycache__/

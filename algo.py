@@ -1,5 +1,5 @@
-from graph_classes import Graph, Node, Edge, ZoneTypes
-from algo_classes import Drone, Utils, HeapQueue
+from graph_classes import Graph, ZoneTypes
+from algo_classes import Drone, HeapQueue
 
 
 class ReservationTable:
@@ -16,7 +16,8 @@ class ReservationTable:
         self._zone_count[(node, t)] = self._zone_count.get((node, t), 0) + 1
 
     def _reserve_edge(self, src: str, dest: str, t: int) -> None:
-        self._edge_count[(src, dest, t)] = self._edge_count.get((src, dest, t), 0) + 1
+        self._edge_count[(src, dest, t)] = self._edge_count.get((src, dest, t),
+                                                                0) + 1
 
     def drone_count_at_t(self, node: str, t: int) -> int:
         return self._zone_count.get((node, t), 0)
@@ -56,7 +57,9 @@ class FleetPlanner:
         self.graph = graph
         self.res_table = ReservationTable()
 
-    def reconstruct_path(self, previous: dict[tuple[str, int], tuple[str, int]], t: int) -> list[tuple[str, int]]:
+    def reconstruct_path(self, previous: dict[tuple[str, int],
+                                              tuple[str, int]],
+                         t: int) -> list[tuple[str, int]]:
         path: list[tuple[str, int]] = []
         current_state: tuple[str, int] = (self.graph.end.name, t)
 
@@ -86,8 +89,11 @@ class FleetPlanner:
                 neighbour = node2 if node1 == node else node1
                 if self.graph.nodes[neighbour].zone == ZoneTypes.BLOCKED:
                     continue
-                neighbour_cost = cost + connection.cost + self.res_table.drone_count_at_t(neighbour, t)
-                if neighbour not in cost_log or neighbour_cost < cost_log[neighbour]:
+                neighbour_cost = (cost + connection.cost +
+                                  self.res_table.drone_count_at_t(neighbour,
+                                                                  t))
+                if (neighbour not in cost_log or
+                        neighbour_cost < cost_log[neighbour]):
                     cost_log[neighbour] = neighbour_cost
                     stack.push((neighbour_cost, neighbour))
         return {}
@@ -102,7 +108,6 @@ class FleetPlanner:
         possibilities.push((0, self.graph.start.name, 0))
         while possibilities:
             cost, node, t = possibilities.pop()
-            # print(f"pop ({node}, t={t}) cost={cost}")
             if (node, t) in visited:
                 continue
             visited.add((node, t))
@@ -121,16 +126,21 @@ class FleetPlanner:
                     neighbour_cost -= 1
                 neighbour_t = t + connection.cost
                 neighbour_max_drones = self.graph.nodes[neighbour].max_drones
-                if (self.res_table.zone_is_full(neighbour, neighbour_t, neighbour_max_drones) or
-                        any(self.res_table.edge_is_full(node, neighbour, neighbour_t, connection.max_link_capacity)
+                mlc = connection.max_link_capacity
+                if (self.res_table.zone_is_full(neighbour, neighbour_t,
+                                                neighbour_max_drones) or
+                        any(self.res_table.edge_is_full(node, neighbour,
+                                                        neighbour_t,
+                                                        mlc)
                             for intermediate in range(connection.cost))):
                     continue
                 going_to_neighbour = (neighbour, neighbour_t)
-                if going_to_neighbour not in cost_log or neighbour_cost < cost_log[going_to_neighbour]:
-                    # print(f"Neighbour: {neighbour}, cost={neighbour_cost}, t={neighbour_t}")
+                if (going_to_neighbour not in cost_log or
+                        neighbour_cost < cost_log[going_to_neighbour]):
                     cost_log[going_to_neighbour] = neighbour_cost
                     previous[going_to_neighbour] = (node, t)
-                    possibilities.push((neighbour_cost, neighbour, neighbour_t))
+                    possibilities.push((neighbour_cost, neighbour,
+                                        neighbour_t))
             waiting_cost = cost + 1 + heuristic[node]
             waiting_t = t + 1
             waiting = (node, waiting_t)

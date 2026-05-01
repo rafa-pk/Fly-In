@@ -1,5 +1,5 @@
 from typing import Any
-from dataclasses import dataclass 
+from dataclasses import dataclass
 from graph_classes import Graph
 from math import pi, cos, sin
 import pygame
@@ -27,19 +27,19 @@ class Drone:
         for i in range(len(self.path) - 1):
             pos1, t1 = self.path[i]
             pos2, t2 = self.path[i + 1]
-            pos1 = graph.nodes[pos1]
-            pos2 = graph.nodes[pos2]
+            ob_pos1 = graph.nodes[pos1]
+            ob_pos2 = graph.nodes[pos2]
             if t1 <= frac_t <= t2:
                 progress = (frac_t - t1) / (t2 - t1)
-                x = pos1.x + (pos2.x - pos1.x) * progress
-                y = pos1.y + (pos2.y - pos1.y) * progress
+                x = ob_pos1.x + (ob_pos2.x - ob_pos1.x) * progress
+                y = ob_pos1.y + (ob_pos2.y - ob_pos1.y) * progress
         return x, y
 
 
 class HeapQueue:
 
     def __init__(self) -> None:
-        self._data = []
+        self._data: list[int] = []
 
     def _sift_up(self, i: int) -> None:
         while i > 0:
@@ -48,7 +48,7 @@ class HeapQueue:
                 break
             self._data[parent], self._data[i] = \
                 self._data[i], self._data[parent]
-            i = parent 
+            i = parent
 
     def _sift_down(self, i: int) -> None:
         length = len(self._data)
@@ -84,7 +84,7 @@ class HeapQueue:
         return min
 
     def peek(self) -> int:
-        return self.data[0]
+        return self._data[0]
 
     def heapify(self, array: list[Any]) -> None:
         self._data = list(array)
@@ -92,7 +92,7 @@ class HeapQueue:
             self._sift_down(i)
 
     def __bool__(self) -> bool:
-        return bool(self._data) 
+        return bool(self._data)
 
     def __len__(self) -> int:
         return len(self._data)
@@ -118,16 +118,17 @@ class Utils:
         """method to draw text to screen"""
         image = font.render(text, True, color)
         screen.blit(image, (x, y))
-    
+
     @staticmethod
-    def draw_text_box(screen, text: str, text_color: tuple[int, int, int], 
+    def draw_text_box(screen, text: str, text_color: tuple[int, int, int],
                       font: str, bg_color: tuple[int, int, int],
                       x: int, y: int, padding: int) -> None:
         """method to draw text to screen with bg underneath"""
         image = font.render(text, True, text_color)
-        text_box = image.get_rect(topleft=(x,y))
-        bg_rect = pygame.Rect(text_box.x - padding, text_box.y - padding, 
-                              text_box.width + padding*2, text_box.height + padding*2)
+        text_box = image.get_rect(topleft=(x, y))
+        bg_rect = pygame.Rect(text_box.x - padding, text_box.y - padding,
+                              text_box.width + padding*2,
+                              text_box.height + padding*2)
         pygame.draw.rect(screen, bg_color, bg_rect, 0)
         screen.blit(image, (x, y))
 

@@ -1,14 +1,13 @@
 import sys
 import os
-from enum import Enum
-from typing import Any, Self
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from graph_classes import MapEntries, ZoneTypes, NodeTypes, MetadataKeys, Node, Edge, Graph
+from typing import Any
+from graph_classes import (MapEntries, NodeTypes, ZoneTypes, MetadataKeys,
+                           Node, Edge, Graph)
 
 
 class Parser:
 
-    def _open_file(self, map_file: str) -> dict[str, Any]:
+    def _open_file(self, map_file: str) -> list[tuple[str, Any]]:
         if not os.path.isfile(map_file):
             print(f"Parsing Error: '{map_file}' not valid or not found")
             sys.exit(1)
@@ -33,12 +32,13 @@ class Parser:
     def _create_node(self, key: str, value: str) -> Node:
         try:
             if not NodeTypes(key):
-                raise ValueError("Node must be defined as 'start_hub', 'end_hub' or 'hub'")
+                raise ValueError("Node must be defined as 'start_hub', "
+                                 "'end_hub' or 'hub'")
 
             fields = value.split()
-            node_data = {
+            node_data: dict[str, Any] = {
                 "name": fields[0],
-                "type": key,   
+                "type": NodeTypes(key),
                 "x": int(fields[1]),
                 "y": int(fields[2]),
             }
@@ -50,18 +50,19 @@ class Parser:
                     case MetadataKeys.COLOR:
                         node_data["color"] = meta_val
                     case MetadataKeys.ZONE:
-                        node_data["zone"] = meta_val
+                        node_data["zone"] = ZoneTypes(meta_val)
                     case MetadataKeys.MAX_DRONES:
-                        node_data["max_drones"] = meta_val
+                        node_data["max_drones"] = int(meta_val)
                     case _:
-                        raise ValueError(f"Field '{meta_key}' not accepted as node metadata") 
+                        raise ValueError(f"Field '{meta_key}' not accepted as "
+                                         f"node metadata")
         except Exception as message:
             print(f"Parsing Error: Node creation failed ({message})")
             sys.exit(1)
         return Node(**node_data)
 
     def _create_edge(self, key: str, value: str, graph: Graph) -> Edge:
-        edge_data = {}
+        edge_data: dict[str, Any] = {}
 
         try:
             if MapEntries(key) != MapEntries.CONNECTION:
@@ -77,7 +78,7 @@ class Parser:
             }
             edge_data["cost"] = edge_costs[graph.nodes[node2].zone.value]
             if len(fields) > 1:
-                meta_key, meta_value = fields[1].strip('[]').split('=', 1)    
+                meta_key, meta_value = fields[1].strip('[]').split('=', 1)
                 if MetadataKeys(meta_key) == MetadataKeys.MAX_LINK_CAPACITY:
                     edge_data["max_link_capacity"] = meta_value
         except Exception as message:
@@ -88,16 +89,19 @@ class Parser:
     def create_graph(self, map_file: str) -> Graph:
 
         settings: list[tuple[str, str]] = self._open_file(map_file)
-        graph: "Graph" = Graph()
+        graph: Graph = Graph()
 
         try:
             graph.nb_drones = int(settings[0][1])
             for key, value in settings[1:]:
-                start = [type for type, info in settings if type == NodeTypes.START.value]
-                end = [type for type, info in settings if type == NodeTypes.END.value]
+                start = [type for type, info in settings
+                         if type == NodeTypes.START.value]
+                end = [type for type, info in settings
+                       if type == NodeTypes.END.value]
                 if len(start) > 1 or len(end) > 1:
-                    raise ValueError("Only one start_hub and end_hub are allowed")
-                if key in [k.value for k in NodeTypes]: 
+                    raise ValueError("Only one start_hub and "
+                                     "end_hub are allowed")
+                if key in [k.value for k in NodeTypes]:
                     node = self._create_node(key, value)
                     graph.add_node(node)
                 elif key == MapEntries.CONNECTION.value:

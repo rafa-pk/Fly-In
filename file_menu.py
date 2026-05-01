@@ -1,10 +1,11 @@
 import pygame
+import sys
 import os
 from algo_classes import Utils
 
 
 class FileMenu:
-    
+
     def __init__(self, screen, program) -> None:
         """init method for the visualizer class"""
         self.screen = screen
@@ -13,7 +14,7 @@ class FileMenu:
         self.options_font = pygame.font.SysFont("Arial", 30)
         self.menu_path = './maps'
         self.menu_index = 0
-    
+
     def menu(self, events: list[str, ...]) -> str:
         """method which handles the menu when the program launches"""
         try:
@@ -35,7 +36,8 @@ class FileMenu:
                     highlight_menu_entry = True
                 if event.key in (pygame.K_LEFT, pygame.K_h):
                     try:
-                        if os.path.isdir(self.menu_path) and self.menu_path != "./maps":
+                        if (os.path.isdir(self.menu_path) and
+                                self.menu_path != "./maps"):
                             parent_dir = os.path.dirname(self.menu_path)
                             if parent_dir != self.menu_path:
                                 self.menu_path = parent_dir
@@ -53,28 +55,29 @@ class FileMenu:
                             return full_path
                     except Exception as error:
                         print(f"Error: Menu navigation: {error}")
-        
+
         self.screen.fill((0, 0, 0))
         try:
-            Utils.draw_text(self.screen, "Select your desired map file:", self.menu_title_font, 
-                           (250, 250, 250), 300, 50)
+            Utils.draw_text(self.screen, "Select your desired map file:",
+                            self.menu_title_font, (250, 250, 250), 300, 50)
             ix = 0
             offset = 50
             for i, element in enumerate(contents):
                 entry = f"  [{ix}]:  {element}"
-                pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset), 
+                pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset),
                                  (self.screen.get_width(), 80 + offset), 1)
                 if highlight_menu_entry and i == self.menu_index:
-                    Utils.draw_text_box(self.screen, entry, (250, 250, 250), self.options_font,
-                                       (51, 51, 51), 0, 100 + offset, 0)
+                    Utils.draw_text_box(self.screen, entry, (250, 250, 250),
+                                        self.options_font, (51, 51, 51), 0,
+                                        100 + offset, 0)
                     highlight_menu_entry = False
                 else:
-                    Utils.draw_text(self.screen, entry, self.options_font, (250, 250, 250),
-                                   0, 100 + offset)
+                    Utils.draw_text(self.screen, entry, self.options_font,
+                                    (250, 250, 250), 0, 100 + offset)
                 ix += 1
                 offset += 70
-            pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset), 
-                                 (self.screen.get_width(), 80 + offset), 1)
+            pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset),
+                             (self.screen.get_width(), 80 + offset), 1)
         except Exception as error:
             print(f"Visualization error: Option menu: {error}")
             sys.exit(1)

@@ -1,8 +1,8 @@
 import sys
 from enum import Enum
 from pygame import Color
-from typing import Any, Self
-from pydantic import BaseModel, ValidationError, Field, model_validator
+from typing import Self
+from pydantic import BaseModel, Field, model_validator
 
 
 class MapEntries(Enum):
@@ -36,11 +36,11 @@ class ZoneTypes(Enum):
 class Node(BaseModel):
     name: str = Field(min_length=1)
     type: NodeTypes
-    x: int  # = Field(ge=0)
-    y: int  # = Field(ge=0)
+    x: int
+    y: int
     zone: ZoneTypes = Field(default=ZoneTypes.NORMAL)
     color: str = Field(default="green")
-    max_drones: int = Field(default=None, ge=1)
+    max_drones: int = Field(default=1, ge=1)
 
     @model_validator(mode='after')
     def node_validator(self) -> Self:
@@ -64,7 +64,7 @@ class Edge(BaseModel):
 
 
 class Graph:
-    
+
     def __init__(self) -> None:
         self.nb_drones: int = 0
         self.nodes: dict[str, Node] = {}
@@ -85,9 +85,11 @@ class Graph:
     def add_edge(self, edge: Edge) -> None:
         node1, node2 = edge.connection
         if node1 not in self.nodes or node2 not in self.nodes:
-            raise ValueError(f"Connection between nodes unsuccessful (node name is unkown or unvalid)")
+            raise ValueError("Connection between nodes unsuccessful (node name"
+                             " is unkown or unvalid)")
         if node1 == node2:
-            raise ValueError(f"Connection between nodes unsuccessful (connected nodes cannot have the same name)")
+            raise ValueError("Connection between nodes unsuccessful (connected"
+                             " nodes cannot have the same name)")
         self.connections[node1].append(edge)
         self.connections[node2].append(edge)
 
@@ -111,5 +113,6 @@ class Graph:
                     continue
                 pair = frozenset({node, neighbour})
                 if pair in seen:
-                    raise ValueError(f"Duplicate connection: '{node}' and '{neighbour}' were already connected")
+                    raise ValueError(f"Duplicate connection: '{node}' and "
+                                     f"'{neighbour}' were already connected")
                 seen.add(pair)
