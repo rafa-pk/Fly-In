@@ -6,12 +6,18 @@ from algo_classes import Utils
 
 
 class Simulation:
-
+    """Algorithm visual simulation class"""
     TROJANS = (156, 232, 255)
     EDGE = (255, 242, 175)
     MAX_VISIBLE_LINES = 34
 
-    def __init__(self, fly_in, screen, graph, drones) -> None:
+    from fly_in import FlyIn
+    from graph_classes import Graph
+    from algo_classes import Drone
+
+    def __init__(self, fly_in: FlyIn, screen: pygame.Surface,
+                 graph: Graph, drones: list[Drone]) -> None:
+        """Initialization method for Simulation class"""
         self.screen = screen
         self.graph = graph
         self.drones = drones
@@ -53,26 +59,27 @@ class Simulation:
         self.drone_img = pygame.transform.smoothscale(self.drone_img, (20, 20))
         self.moves = 0
         self.log_lines: list[str] = []
-        self._to_draw_info: tuple[str, int, int] = ()
+        self._to_draw_info: tuple[str, int, int] | None = None
 
     def _draw_info(self, node_coords: tuple[str, int, int]) -> None:
+        """Displays node information on mouse hover."""
         node, nx, ny = node_coords
         title_font = pygame.font.SysFont("Arial", 30)
         info_rect = pygame.Surface((300, 210), pygame.SRCALPHA)
         info_rect.fill((133, 133, 133, 250))
-        node = self.graph.nodes[node]
+        node_o = self.graph.nodes[node]
         tx = 5
         ty = 50
         ofs = 0
         Utils.draw_text(info_rect, "Hub Info:", title_font, (0, 0, 0), 80, 5)
         text_font = pygame.font.SysFont("Arial", 20)
         connections = {edge.connection for edge
-                       in self.graph.connections[node.name]}
+                       in self.graph.connections[node_o.name]}
         text = {
-            "Name: ": node.name,
-            "Type: ": node.type.value,
-            "Zone: ": node.zone.value,
-            "Max drones: ": node.max_drones,
+            "Name: ": node_o.name,
+            "Type: ": node_o.type.value,
+            "Zone: ": node_o.zone.value,
+            "Max drones: ": node_o.max_drones,
             "Connections: ": len(connections)
             }
         for title, info in text.items():
@@ -81,7 +88,8 @@ class Simulation:
             ofs += 30
         self.screen.blit(info_rect, (nx + 5, ny - 220))
 
-    def _handle_events(self, events: list[str]) -> None:
+    def _handle_events(self, events: list[pygame.event.Event]) -> None:
+        """Handles events in the simulation-screen."""
         for event in events:
             if event.type == pygame.QUIT:
                 self.fly_in.status(False)
@@ -127,9 +135,10 @@ class Simulation:
                         self._to_draw_info = (node, nx, ny)
                         break
                 else:
-                    self._to_draw_info = ()
+                    self._to_draw_info = None
 
     def _draw_controller(self) -> None:
+        """Draws controller, its buttons, assets and screen"""
         pygame.draw.rect(self.screen, self.TROJANS, self.controller_body,
                          border_radius=24)
         pygame.draw.rect(self.screen, self.TROJANS, self.controller_l_antena,
@@ -183,6 +192,7 @@ class Simulation:
 
     def _wrap_line(self, line: str, font: pygame.font.Font,
                    max_width: int) -> list[str]:
+        """Transforms move lines into sub-lines if they are too long."""
         entries = line.split(' ')
         lines = []
         current = ""
@@ -192,13 +202,25 @@ class Simulation:
             if font.size(candidate)[0] <= max_width:
                 current = candidate
             else:
-                lines.append(current)
-                current = entry
+                if current:
+                    lines.append(current)
+                if font.size(entry)[0] > max_width:
+                    chunk = ""
+                    for char in entry:
+                        if font.size(chunk + char)[0] <= max_width:
+                            chunk += char
+                        else:
+                            lines.append(chunk)
+                            chunk = char
+                    current = chunk
+                else:
+                    current = entry
         if current:
             lines.append(current)
         return lines
 
     def _draw_dashboard(self) -> None:
+        """Draws Fly-In dashboard, move display and line-breaking."""
         pygame.draw.rect(self.screen, self.TROJANS, self.dashboard,
                          border_radius=24)
         title_font = pygame.font.SysFont("Comic Sans MS", 40)
@@ -238,13 +260,14 @@ class Simulation:
         visual_lines = []
         for line in self.log_lines:
             visual_lines.extend(self._wrap_line(line, term_font,
-                                self.dashboard_term.width))
+                                (self.dashboard_term.width - 8)))
         for subline in visual_lines[-self.MAX_VISIBLE_LINES:]:
             Utils.draw_text(self.screen, subline, term_font, (250, 250, 250),
                             term_header_x, term_header_y + offset)
             offset += 15
 
-    def _transform_coords(self, x: int, y: int) -> tuple[int, int]:
+    def _transform_coords(self, x: float, y: float) -> tuple[int, int]:
+        """Converts map coordinates to screen-coordinates."""
         screen_cx = (self.real_minx + self.real_maxx) / 2
         screen_cy = (self.real_miny + self.real_maxy) / 2
         screen_x = (self.controller_screen.centerx + (x - screen_cx) *
@@ -254,6 +277,7 @@ class Simulation:
         return (int(screen_x), int(screen_y))
 
     def _draw_graph(self) -> None:
+        """Draws node-graph to window, complying to its metadata.""" 
         nodes = self.graph.nodes
         drawn = set()
 
@@ -279,6 +303,7 @@ class Simulation:
             pygame.draw.circle(self.screen, node_o.color, (nx, ny), 10)
 
     def _log_moves(self) -> None:
+        """Builds move string, stores it and prints it to stdout."""
         log = ""
         for drone in self.drones:
             if not drone.path:
@@ -301,6 +326,15 @@ class Simulation:
             print(log)
 
     def _get_frac_time(self, dt: float) -> float:
+        """converts real time, based on frame-rate to simulation turns and
+        handles discrete moves.
+
+        Parameters:
+        dt(float): duration of last frame
+
+        Returns:
+        float: integer simulation step + how far into the next step it may be
+        """
         if not self.paused:
             self.accumulator += dt
             while self.accumulator >= self.step_duration:
@@ -310,6 +344,7 @@ class Simulation:
         return self.sim_t + (self.accumulator / self.step_duration)
 
     def _draw_drones(self, frac_t: float) -> None:
+        """Display drone assets at their time-t coordinates."""
         for i, drone in enumerate(self.drones):
             dx, dy = drone.get_pos(frac_t, self.graph)
             sx, sy = self._transform_coords(dx, dy)
@@ -317,7 +352,8 @@ class Simulation:
             rect = self.drone_img.get_rect(center=(sx + ox, sy + oy))
             self.screen.blit(self.drone_img, rect)
 
-    def run_step(self, events: list[str], dt: float) -> None:
+    def run_step(self, events: list[pygame.event.Event], dt: float) -> None:
+        """Runs discrete turn: Handles events and drawing to screen"""
         self._handle_events(events)
         if self.screamer_active:
             self.screen.blit(self.screamer, (0, 0))
@@ -328,5 +364,5 @@ class Simulation:
             self._draw_dashboard()
             self._draw_graph()
             self._draw_drones(frac_t)
-            if self._to_draw_info != ():
+            if self._to_draw_info is not None:
                 self._draw_info(self._to_draw_info)

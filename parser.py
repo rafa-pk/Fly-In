@@ -6,8 +6,19 @@ from graph_classes import (MapEntries, NodeTypes, ZoneTypes, MetadataKeys,
 
 
 class Parser:
-
+    """Parsing class, opens file and creates map"""
     def _open_file(self, map_file: str) -> list[tuple[str, Any]]:
+        """
+        Method to open chosen file, returns filtered raw data and rejects 
+        invalid entry keys.
+
+        Parameters:
+        map_file(str): the file to be opened.
+
+        Returns:
+        list[tuple[str, Any]]: list of (entry, data) tuples which will then 
+        be parsed.
+        """
         if not os.path.isfile(map_file):
             print(f"Parsing Error: '{map_file}' not valid or not found")
             sys.exit(1)
@@ -30,6 +41,16 @@ class Parser:
         return settings
 
     def _create_node(self, key: str, value: str) -> Node:
+        """
+        Creates and returns valid node object from raw key, value data.
+
+        Parameters:
+        key(str): node type.
+        value(str): node data/metadata which will be parsed and stored.
+
+        Returns:
+        Valid Node object which will be added to the graph.
+        """
         try:
             if not NodeTypes(key):
                 raise ValueError("Node must be defined as 'start_hub', "
@@ -62,6 +83,18 @@ class Parser:
         return Node(**node_data)
 
     def _create_edge(self, key: str, value: str, graph: Graph) -> Edge:
+        """
+        Creates and returns valid edge object from raw key, value data.
+
+        Parameters:
+        key(str): connection identifier.
+        value(str): edge data/metadata which will be parsed and stored.
+        graph(Graph): Graph object, to be able to access the node objects
+        the edge connects.
+
+        Returns:
+        Valid Edge object which will be added to the graph.
+        """
         edge_data: dict[str, Any] = {}
 
         try:
@@ -87,7 +120,17 @@ class Parser:
         return Edge(**edge_data)
 
     def create_graph(self, map_file: str) -> Graph:
+        """
+        Main parsing method, will call methods handling every part of the
+        parsing.
 
+        Parameters:
+        map_file(str): path to the map file to be parsed, returned from the
+        menu.
+
+        Returns:
+        Graph: Graph object, which will represent the node-graph.
+        """
         settings: list[tuple[str, str]] = self._open_file(map_file)
         graph: Graph = Graph()
 

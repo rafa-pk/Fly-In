@@ -1,41 +1,54 @@
 import sys
 import pygame
-from file_menu import FileMenu
 from parser import Parser
 from algo_classes import Utils
 from algo import FleetPlanner
-from simulation import Simulation
 
 
 class FlyIn:
-    """Orchestrator class: Bridges gap between program and pygame"""
+    """Orchestrator class: Bridges gap between program and pygame."""
     def __init__(self) -> None:
-        """Initialization method: inits pygame and everything the
-        program will need"""
+        """Initialization method: inits pygame and essential attrs."""
+        from file_menu import FileMenu
         pygame.init()
         self.screen = pygame.display.set_mode((1400, 800))
         pygame.display.set_caption("Fly In (Visualizer) @ 42Belgium")
         self.running: bool = True
-        self.state: str = None
-        self.map_file: str = None
+        self.state: str = ""
+        self.map_file: str = ""
         self.file_menu = FileMenu(self.screen, self)
         self._run()
 
     def status(self, program_status: bool) -> None:
+        """Allows for easy stoping of pygame loop."""
         self.running = program_status
 
-    def _starting_menu(self, events: list[str], dt: float) -> None:
-        """method which calls the menu visualizer, stores the map to be used
-        and updates status"""
+    def _starting_menu(self, events: list[pygame.event.Event],
+                       dt: float) -> None:
+        """
+        Calls graphical map menu, stores the map to be used and updates status.
+
+        Parameters:
+        events(list[pygame.event.Event]): list of pygame events to be handled
+        dt (float): interval between two frames in seconds
+        """
         self.map_file = self.file_menu.menu(events)
-        if self.map_file is not None:
+        if self.map_file:
             print(self.map_file)
             self.screen.fill((0, 0, 0))
             self.state = "loading"
 
-    def _program_loading(self, events: list[str], dt: float) -> None:
-        """method which calls loading visualizer while doing the parsing and
-        algorithmic logic"""
+    def _program_loading(self, events: list[pygame.event.Event],
+                         dt: float) -> None:
+        """
+        Calls the algorithm and parsing logic and initializes simulation,
+        updates state.
+
+        Parameters:
+        events(list[pygame.event.Event]): list of pygame events to be handled
+        dt (float): interval between two frames in seconds
+        """
+        from simulation import Simulation
         parser = Parser()
         self.node_graph = parser.create_graph(self.map_file)
         self.drones = Utils.init_drones(self.node_graph)
@@ -44,11 +57,18 @@ class FlyIn:
         self.sim = Simulation(self, self.screen, self.node_graph, self.drones)
         self.state = "running"
 
-    def _update(self, events: list[str], dt: float) -> None:
+    def _update(self, events: list[pygame.event.Event], dt: float) -> None:
+        """
+        Calls simulation for one discrete step.
+
+        Parameters:
+        events(list[pygame.event.Event]): list of pygame events to be handled
+        dt (float): interval between two frames in seconds
+        """
         self.sim.run_step(events, dt)
 
     def _run(self) -> None:
-        """main graphical loop which detects hooks and executes program"""
+        """Main graphical loop which gets events/state and executes program."""
         program_states = {
                     "menu": self._starting_menu,
                     "loading": self._program_loading,
@@ -70,6 +90,7 @@ class FlyIn:
 
 
 def main() -> None:
+    """Main function, rejects wrong input and instantiates FlyIn object."""
     if len(sys.argv) != 1:
         print("\nError: Too many arguments.\n\tUsage: python3 fly_in.py")
         sys.exit(1)
@@ -78,4 +99,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    """Program's entry point, calls main function."""
     main()

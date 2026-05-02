@@ -2,12 +2,15 @@ import pygame
 import sys
 import os
 from algo_classes import Utils
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from fly_in import FlyIn
 
 
 class FileMenu:
-
-    def __init__(self, screen, program) -> None:
-        """init method for the visualizer class"""
+    """Class responsible for the map choice menu."""
+    def __init__(self, screen: pygame.Surface, program: "FlyIn") -> None:
+        """Initialization method for the map menu visual class"""
         self.screen = screen
         self.program = program
         self.menu_title_font = pygame.font.SysFont("Arial", 60)
@@ -15,10 +18,19 @@ class FileMenu:
         self.menu_path = './maps'
         self.menu_index = 0
 
-    def menu(self, events: list[str, ...]) -> str:
-        """method which handles the menu when the program launches"""
+    def menu(self, events: list[pygame.event.Event]) -> str:
+        """
+        Handles graphical menu when the program launches,
+        returns the user's desired map.
+
+        Parameters:
+        events(list[pygame.event.Event]): list of pygame events to be handled
+
+        Returns:
+        str: the path to the desired map, which will be parsed
+        """
         try:
-            contents: list[str, ...] = os.listdir(self.menu_path)
+            contents: list[str] = os.listdir(self.menu_path)
         except Exception as error:
             print(f"Error: Map menu: {error}")
         highlight_menu_entry: bool = True
@@ -55,7 +67,6 @@ class FileMenu:
                             return full_path
                     except Exception as error:
                         print(f"Error: Menu navigation: {error}")
-
         self.screen.fill((0, 0, 0))
         try:
             Utils.draw_text(self.screen, "Select your desired map file:",
@@ -78,6 +89,7 @@ class FileMenu:
                 offset += 70
             pygame.draw.line(self.screen, (51, 51, 51), (0, 80 + offset),
                              (self.screen.get_width(), 80 + offset), 1)
+            return ""
         except Exception as error:
             print(f"Visualization error: Option menu: {error}")
             sys.exit(1)
