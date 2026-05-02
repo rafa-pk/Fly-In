@@ -36,18 +36,18 @@ make re             # Runs make clean + make run
 
 - '#' define commented lines
 - The first valid line has to define the number of drones, as a positive integer
-- Hub definitions come first, as such: <type>: <name> <x-coord> <y-coord> [metadata] (optional)
-- Connections are defined afterwards, as such: <connection>: <src_node>-<dest_node> [metadata] (optional)
+- Hub definitions come first, as such: < type >: < name > < x-coord > < y-coord > [metadata] (optional)
+- Connections are defined afterwards, as such: < connection >: < src_node >-< dest_node > [metadata] (optional)
 
 Metadata varies depending on hub/connection, but is the following:
 
 **For hubs:**
-- <zone>: str, defaults to normal. Blocked means node is unaccessible, restricted that it takes 2 moves to get to it and priority that it should be prioritized in pathfinding.
-- <color>: str, defines node's color
-- <max_drones>: int, defaults to 1. Defines the maximum number of drones allowed in the zone simultaneously
+- < zone >: str, defaults to normal. Blocked means node is unaccessible, restricted that it takes 2 moves to get to it and priority that it should be prioritized in pathfinding.
+- < color >: str, defines node's color
+- < max_drones >: int, defaults to 1. Defines the maximum number of drones allowed in the zone simultaneously
 
 **For connections:**
-- <max_link_capacity>: int, defaults to 1. Defines the maximum number of drones allowed to move through the connection simultaneously
+- < max_link_capacity >: int, defaults to 1. Defines the maximum number of drones allowed to move through the connection simultaneously
 
 ## Actions
 ESC is always available to quit the program safely and close the window, the remaining actions are context-specific:
