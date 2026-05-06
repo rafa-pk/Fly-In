@@ -225,7 +225,7 @@ class Simulation:
                          border_radius=24)
         title_font = pygame.font.SysFont("Comic Sans MS", 40)
         info_font = pygame.font.SysFont("Arial", 20)
-        title_x = self.dashboard.left + 60
+        title_x = self.dashboard.left + 85
         title_y = self.dashboard.top + 10
         Utils.draw_text(self.screen, "Fly-In dashboard:", title_font,
                         (0, 0, 0), title_x, title_y)
@@ -277,7 +277,7 @@ class Simulation:
         return (int(screen_x), int(screen_y))
 
     def _draw_graph(self) -> None:
-        """Draws node-graph to window, complying to its metadata.""" 
+        """Draws node-graph to window, complying to its metadata."""
         nodes = self.graph.nodes
         drawn = set()
 

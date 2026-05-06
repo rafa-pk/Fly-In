@@ -34,7 +34,6 @@ class FlyIn:
         """
         self.map_file = self.file_menu.menu(events)
         if self.map_file:
-            print(self.map_file)
             self.screen.fill((0, 0, 0))
             self.state = "loading"
 

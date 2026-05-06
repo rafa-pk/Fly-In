@@ -43,8 +43,8 @@ class ReservationTable:
 
     def edge_is_full(self, src: str, dest: str, t: int, max_link: int) -> bool:
         """Returns True if edge is at max_link_capacity at time t"""
-        forward = self._edge_count.get((src, dest, t), 0) >= max_link
-        backwards = self._edge_count.get((dest, src, t), 0) >= max_link
+        forward = self._edge_count.get((src, dest, t), 0)
+        backwards = self._edge_count.get((dest, src, t), 0)
         return forward + backwards >= max_link
 
     def reserve_path(self, path: list[tuple[str, int]]) -> None:
@@ -178,7 +178,9 @@ class FleetPlanner:
             waiting_t = t + 1
             waiting = (node, waiting_t)
             max_drones = self.graph.nodes[node].max_drones
-            if not self.res_table.zone_is_full(node, waiting_t, max_drones):
+            if (node == start.name or
+                    not self.res_table.zone_is_full(node, waiting_t,
+                                                    max_drones)):
                 if waiting not in cost_log or waiting_cost < cost_log[waiting]:
                     cost_log[waiting] = waiting_cost
                     previous[waiting] = (node, t)

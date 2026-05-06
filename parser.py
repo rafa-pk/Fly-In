@@ -9,14 +9,14 @@ class Parser:
     """Parsing class, opens file and creates map"""
     def _open_file(self, map_file: str) -> list[tuple[str, Any]]:
         """
-        Method to open chosen file, returns filtered raw data and rejects 
+        Method to open chosen file, returns filtered raw data and rejects
         invalid entry keys.
 
         Parameters:
         map_file(str): the file to be opened.
 
         Returns:
-        list[tuple[str, Any]]: list of (entry, data) tuples which will then 
+        list[tuple[str, Any]]: list of (entry, data) tuples which will then
         be parsed.
         """
         if not os.path.isfile(map_file):
