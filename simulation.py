@@ -1,4 +1,5 @@
 import os
+# import sys
 import pygame
 import random
 import webbrowser
@@ -60,6 +61,9 @@ class Simulation:
         self.moves = 0
         self.log_lines: list[str] = []
         self._to_draw_info: tuple[str, int, int] | None = None
+        self.cap_flag = False
+        # if len(sys.argv) == 2:
+        #    self.cap_flag = True
 
     def _draw_info(self, node_coords: tuple[str, int, int]) -> None:
         """Displays node information on mouse hover."""
@@ -302,6 +306,23 @@ class Simulation:
             self._relative_node_coords[node] = (nx, ny)
             pygame.draw.circle(self.screen, node_o.color, (nx, ny), 10)
 
+# def _cap_info(self, at_node: bool, new: tuple[str, int],
+#                old: tuple[str, int]) -> str:
+#        from algo import ReservationTable
+#        node, t = new
+#        prev_n, prev_t = old
+#        res_t = ReservationTable()
+#
+#        if at_node:
+#            occupancy = self.algo.res_table.drone_count_at_t(node, t)
+#            max_drones = self.graph.nodes[node].max_drones
+#            return f"[{occupancy}/{max_drones} drones] "
+#        else:
+#            occupancy = self.algo.res_table.edge_cap_at_t(prev_n, node, t)
+#            max_link = next(edge for edge in self.graph.connections[prev_n]
+#                            if node in edge.connection).max_link_capacity
+#            return f"[{occupancy}/{max_link} capacity used] "
+
     def _log_moves(self) -> None:
         """Builds move string, stores it and prints it to stdout."""
         log = ""
@@ -316,10 +337,13 @@ class Simulation:
                     if node == prev_n:
                         continue
                     log += f"{drone.id}-{node} "
+                    # if self.cap_flag:
+                    #    self._cap_info(True, (node, t), (prev_n, prev_t))
                 elif prev_t < self.sim_t < t:
                     connection = prev_n + '-' + node
                     log += f"{drone.id}-{connection} "
-
+                    # if self.cap_flag:
+                    #    self._cap_info(False, (node, t), (prev_n, prev_t))
         if log:
             self.moves += 1
             self.log_lines.append(log)

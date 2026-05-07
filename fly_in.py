@@ -93,6 +93,10 @@ def main() -> None:
     if len(sys.argv) != 1:
         print("\nError: Too many arguments.\n\tUsage: python3 fly_in.py")
         sys.exit(1)
+    # if len((sys.argv) > 2 or
+    #        (len(sys.argv) == 2 and sys.argv[1] != "--capacity-info")):
+    #    print("\nError: Wrong args")
+    #    sys.exit(1)
     else:
         FlyIn()
 

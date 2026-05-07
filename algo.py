@@ -23,6 +23,9 @@ class ReservationTable:
         self._edge_count[(src, dest, t)] = self._edge_count.get((src, dest, t),
                                                                 0) + 1
 
+    def edge_cap_at_t(self, src: str, dest: str, t: int) -> int:
+        return self._edge_count.get((src, dest, t), 0)
+
     def drone_count_at_t(self, node: str, t: int) -> int:
         """Returns the number of drones in node at time t."""
         return self._zone_count.get((node, t), 0)
